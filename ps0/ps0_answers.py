@@ -86,6 +86,10 @@ class Question2:
             with no dimes and 10 quarters. Another example value: dimes_and_quarters = {} or dimes_and_quarters =
             None means that we are starting with 0 dimes and 0 quarters.
         """
+        if dimes_and_quarters is not None: ## referenced from lectures solutions
+            self.dq = dimes_and_quarters ## references from lectures solutions
+        else:
+            self.dq = dict() ## references from lectures solutions
 
     def add_coins(self, dimes_and_quarters):
         """
@@ -100,6 +104,18 @@ class Question2:
                 adding 0 dimes and 10 quarters. Another example value: dimes_and_quarters = {} means that we are not
                 adding any dimes or quarters. :return: None
         """
+        ### begin reference from lecture solutions
+        if "dimes" in dimes_and_quarters:
+            if "dimes" in self.dq:
+                self.dq["dimes"] += dimes_and_quarters["dimes"]
+            else:
+                self.dq["dimes"] = dimes_and_quarters["dimes"]
+        if "quarters" in dimes_and_quarters:
+            if "quarters" in self.dq:
+                self.dq["quarters"] += dimes_and_quarters["quarters"]
+            else:
+                self.dq["quarters"] = dimes_and_quarters["quarters"]
+        ## end reference from lecture solutions
 
     def remove_coins(self, dimes_and_quarters):
         """
@@ -115,6 +131,14 @@ class Question2:
                 removing 0 dimes and 10 quarters. Another example value: dimes_and_quarters = {} means that we are
                 not removing any dimes or quarters. :return: None
         """
+        if "dimes" in dimes_and_quarters:
+            if "dimes" in self.dq:
+                self.dq["dimes"] -= dimes_and_quarters["dimes"]
+
+        if "quarters" in dimes_and_quarters:
+            if "quarters" in dimes_and_quarters:
+                self.dq["quarters"] -= dimes_and_quarters["quarters"]
+
 
     def get_coins(self):
         """
@@ -122,12 +146,27 @@ class Question2:
         Note that the output dictionary needs to have both the keys. If suppose the quarters are zero and dimes are
         2, the return value should be {'dimes': 2, 'quarters': 0}.
         """
+        if not("dimes" in self.dq):
+            self.dq["dimes"] = 0
+
+        if not("quarters" in self.dq):
+            self.dq["quarters"] = 0
+        return self.dq
+
 
     def get_balance_cents(self):
         """
         :return: the balance amount (in cents), taking into account the value of each type of coin. Eg: if we have 5
         dimes and 2 quarters in the balance, then the return value should be 5 * 10 + 2 * 25 = 100.
         """
+        if not ("dimes" in self.dq):
+            self.dq["dimes"] = 0
+
+        if not ("quarters" in self.dq):
+            self.dq["quarters"] = 0
+
+        balance = self.dq["dimes"] * 10 + self.dq["quarters"] * 25
+        return balance
 
 
 # Question 3: Bank account: dimes and quarters (tuple)
