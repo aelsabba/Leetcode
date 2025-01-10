@@ -37,7 +37,7 @@ if OUTPUT_UNIQUE_FILE_ID:
 #
 # Please specify your GT login ID in the whoami variable (ex: jsmith125).
 #
-whoami = ''
+whoami = 'aelsabbagh3' #903053941
 
 
 # Question 1: Bank account balance
@@ -46,12 +46,14 @@ class Question1:
         """
         Initialize the account balance to zero.
         """
+        self.amount = 0
 
     def deposit(self, amount):
         """
         :param amount: the amount to be added to the existing balance
         :return: None
         """
+        self.amount += amount
 
     def withdraw(self, amount):
         """
@@ -59,11 +61,13 @@ class Question1:
         :param amount: the amount to be removed from the existing balance
         :return: None
         """
+        self.amount -= amount
 
     def get_balance(self):
         """
         :return: the balance
         """
+        return self.amount
 
 
 # Question 2: Bank account: dimes and quarters (dictionary)
