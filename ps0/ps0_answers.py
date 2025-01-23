@@ -185,6 +185,11 @@ class Question3:
             with no dimes and 10 quarters. Another example value: dimes_and_quarters = {} or dimes_and_quarters =
             None means that we are starting with 0 dimes and 0 quarters.
         """
+        if dimes_and_quarters is not None: ## referenced from lectures solutions
+            self.dq = dimes_and_quarters ## references from lectures solutions
+        else:
+            self.dq = dict() ## references from lectures solutions
+
 
     def add_coins(self, dimes_and_quarters):
         """
@@ -193,6 +198,14 @@ class Question3:
         dimes_and_quarters = (5, 6) means that there are 5 dimes and 6 quarters to be added. Another Example value:
         dimes_and_quarters = (5, 0) means that there are 5 dimes and no quarters to be added. :return: None
         """
+        if not("dimes" in self.dq):
+            self.dq["dimes"] = 0
+
+        if not("quarters" in self.dq):
+            self.dq["quarters"] = 0
+
+        self.dq["dimes"] += dimes_and_quarters[0]
+        self.dq["quarters"] += dimes_and_quarters[1]
 
     def remove_coins(self, dimes_and_quarters):
         """
@@ -202,12 +215,29 @@ class Question3:
         value: dimes_and_quarters = (5, 6) means that there are 5 dimes and 6 quarters to be removed. Another Example
         value: dimes_and_quarters = (0, 5) means that there are no dimes and 5 quarters to be removed. :return: None
         """
+        if not ("dimes" in self.dq):
+            self.dq["dimes"] -= 0
+
+        if not ("quarters" in self.dq):
+            self.dq["quarters"] -= 0
+
+        self.dq["dimes"] -= dimes_and_quarters[0]
+        self.dq["quarters"] -= dimes_and_quarters[1]
 
     def get_balance_cents(self):
         """
         :return: the balance amount (in cents), taking into account the value of each type of coin. Eg: if we have 5
         dimes and 2 quarters in the balance, then the return value should be 5 * 10 + 2 * 25 = 100.
         """
+
+        if not ("dimes" in self.dq):
+            self.dq["dimes"] = 0
+
+        if not ("quarters" in self.dq):
+            self.dq["quarters"] = 0
+
+        balance = self.dq["dimes"] * 10 + self.dq["quarters"] * 25
+        return balance
 
 
 # Question 4: Debugging
@@ -227,7 +257,7 @@ class Question4:
         """
         output = ''
         for customer_name, account_info in self.accounts.items():
-            customer_name, dimes, quarters = account_info
+            dimes, quarters = account_info
             balance = dimes * 10 + quarters * 25
             output = output + f'(Customer: {customer_name}, Balance: {balance})'
         return output
