@@ -95,6 +95,8 @@ class Spaceship():
         self.shipX = xy_start[0]
         self.shipY = xy_start[1]
         self.win = False
+        self.asteroidsPos = None
+        self.time = 0
 
 
 
@@ -171,18 +173,31 @@ class Spaceship():
         else:
             return False
     def isSpeedHighConfidence(self,key):
-        if self.asteroids[key].P[2][2] < 0.001:
-            if self.asteroids[key].P[3][3] < 0.001:
+        if self.asteroids[key].P[2][2] < 0.0008:
+            if self.asteroids[key].P[3][3] < 0.0008:
                 return True
         return False
 
     def isGoingUp(self,key):
         if self.asteroids[key].x[3][0] > 0:
             return True
+        return False
 
     def get_agent_pos(self,key):
         x = self.asteroids[key].F * self.asteroids[key].x
         return (x[0][0], x[1][0])
+
+    def get_position_N_steps_away(self,key,Nsteps):
+        asteroid = self.asteroids[key]
+        newX = asteroid.x[0][0] + asteroid.x[2][0]  * Nsteps + asteroid.x[4][0]  * Nsteps * Nsteps * 0.5
+        newY = asteroid.x[1][0]  + asteroid.x[3][0]  * Nsteps + asteroid.x[5][0]  * Nsteps * Nsteps * 0.5
+        return (newX,newY)
+
+    def get_distance_from_top_center(self,key,N):
+        position = self.get_position_N_steps_away(key,N)
+        y_diff = self.y_bounds[1] - position[1]
+        x_diff = 0.5 * abs(((self.x_bounds[0] + self.x_bounds[1]) / 2) - position[0])
+        return math.sqrt(y_diff * y_diff + x_diff + x_diff)
 
     def get_distance(self,pos1,pos2):
         xdiff = abs(pos2[0] - pos1[0])
@@ -219,74 +234,46 @@ class Spaceship():
         return 3, estimated_return
 
         """
+        self.time = self.time + 1
         # FOR STUDENT TODO: Update the idx of the asteroid on which to jump
         asteroidsPos = self.predict_from_observations(asteroid_observations)
         if agent_data['ridden_asteroid'] != None:
             self.shipX = self.get_agent_pos(agent_data['ridden_asteroid'])[0]
             self.shipY = self.get_agent_pos(agent_data['ridden_asteroid'])[1]
         shipPos = (self.shipX,self.shipY)
-        if self.win == True:
+        if self.win == True or self.time < 100:
             return None, asteroidsPos
         if self.shipY >= self.y_bounds[1]:
             self.win = True
             return None, asteroidsPos
 
         ### get list of agents within jumping distance and high confidence speed
-        nearAsteroids = []
+        nearAsteroids = {}
+        xCenter = (self.x_bounds[0] + self.x_bounds[1])  / 2
+        xWidth = abs(self.x_bounds[0] - self.x_bounds[1]) / 2
+        ratioToEdge = abs(self.shipX - xCenter) / xWidth
+
+        yMid = (self.y_bounds[0] + self.y_bounds[1])  / 2
+        yWidth = abs(self.y_bounds[0] - self.y_bounds[1]) / 2
+        ratioToTopBottom = abs(self.shipY - yMid) / yWidth
         for agent in self.asteroids.keys():
             agentPos = self.get_agent_pos(agent)
             distanceToShip = self.get_distance(agentPos,shipPos)
-            if distanceToShip < agent_data['jump_distance'] * 0.8:
+            if distanceToShip < agent_data['jump_distance'] * 0.75:
                 if self.isSpeedHighConfidence(agent):
-                    if self.isGoingUp(agent):
-                        if self.isWithinHorizontalBounds(agent):
-                            if self.isWithinVerticalBounds(agent):
-                                nearAsteroids.append(agent)
+                    if self.isWithinHorizontalBounds(agent):
+                        if self.isWithinVerticalBounds(agent):
+                            if self.isGoingUp(agent) or ratioToEdge > 0.3:
+                                nearAsteroids[agent] = self.get_distance_from_top_center(agent,10)
+                        elif agent == agent_data['ridden_asteroid']:
+                            nearAsteroids[agent] = self.get_distance_from_top_center(agent,10)
+
         if len(nearAsteroids) > 0:
-            idx = nearAsteroids[0]
+            idx = min(nearAsteroids,key = nearAsteroids.get)
         else:
             idx = None
-        xCenter = (self.x_bounds[0] + self.x_bounds[1])  / 2
-        xWidth = abs(self.x_bounds[0] - self.x_bounds[1])
-        xMin = xCenter - 0.2 * (xWidth / 2.0)
-        xMax = xCenter + 0.2 * (xWidth / 2.0)
-        if self.shipX > xMax:
-            for asteroid in nearAsteroids:
-                if self.asteroids[asteroid].x[2][0] < 0:
-                    idx = asteroid
-                    break;
-        if self.shipX < xMin:
-            for asteroid in nearAsteroids:
-                if self.asteroids[asteroid].x[2][0] > 0:
-                    idx = asteroid
-                    break;
 
-        xMin = xCenter - 0.8 * (xWidth / 2.0)
-        xMax = xCenter + 0.8 * (xWidth / 2.0)
-        if self.shipX > xMax:
-            nearAsteroids = []
-            for agent in self.asteroids.keys():
-                agentPos = self.get_agent_pos(agent)
-                distanceToShip = self.get_distance(agentPos, shipPos)
-                if distanceToShip < agent_data['jump_distance'] * 0.8:
-                    if self.isSpeedHighConfidence(agent):
-                        nearAsteroids.append(agent)
-            for asteroid in nearAsteroids:
-                if self.asteroids[asteroid].x[2][0] < 0:
-                    idx = asteroid
-                    break;
-        if self.shipX < xMin:
-            nearAsteroids = []
-            for agent in self.asteroids.keys():
-                agentPos = self.get_agent_pos(agent)
-                distanceToShip = self.get_distance(agentPos, shipPos)
-                if distanceToShip < agent_data['jump_distance'] * 0.8:
-                    if self.isSpeedHighConfidence(agent):
-                        nearAsteroids.append(agent)
-            for asteroid in nearAsteroids:
-                if self.asteroids[asteroid].x[2][0] > 0:
-                    idx = asteroid
-                    break;
+
         if idx == agent_data['ridden_asteroid']:
             idx = None
         return idx, asteroidsPos
